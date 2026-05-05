@@ -147,6 +147,12 @@ overscroll-behavior: none;
 .set-val { font-size:12px; color:#5aaede; font-weight:600; white-space:nowrap; }
 .set-arrow { color:#334d63; font-size:15px; }
 
+/* TOGGLE */
+.toggle { width:44px; height:26px; background:#1c3045; border-radius:13px; position:relative; cursor:pointer; transition:background .25s; flex-shrink:0; }
+.toggle.on { background:#2a6fa8; }
+.toggle::after { content:’’; position:absolute; top:3px; left:3px; width:20px; height:20px; background:#fff; border-radius:50%; transition:transform .25s; box-shadow:0 1px 4px rgba(0,0,0,0.3); }
+.toggle.on::after { transform:translateX(18px); }
+
 /* FAB */
 .fab { position:fixed; bottom:86px; right:16px; width:52px; height:52px; background:linear-gradient(135deg,#2a6fa8,#20527a); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px; color:#fff !important; box-shadow:0 5px 20px rgba(32,82,122,0.5); cursor:pointer; z-index:100; transition:transform .15s; }
 .fab:active { transform:scale(0.92); }
@@ -282,6 +288,19 @@ overscroll-behavior: none;
       <div class="set-icon blue">💵</div>
       <div class="set-text"><div class="set-label">Месячный бюджет</div><div class="set-desc">Лимит на месяц</div></div>
       <div class="set-val" id="sv-budget">Не задан</div>
+    </div>
+  </div>
+  <div class="sec-hdr"><div class="sec-title">Уведомления</div></div>
+  <div class="settings-sec">
+    <div class="set-item">
+      <div class="set-icon yellow">🌙</div>
+      <div class="set-text"><div class="set-label">Вечернее напоминание</div><div class="set-desc">Итог дня в 21:00</div></div>
+      <div class="toggle" id="toggle-evening" onclick="toggleSetting('notify_evening','toggle-evening')"></div>
+    </div>
+    <div class="set-item">
+      <div class="set-icon green">📅</div>
+      <div class="set-text"><div class="set-label">Напоминания о платежах</div><div class="set-desc">За 5 дней и за день до платежа</div></div>
+      <div class="toggle" id="toggle-payments" onclick="toggleSetting('notify_payments','toggle-payments')"></div>
     </div>
   </div>
   <div class="sec-hdr"><div class="sec-title">Регулярные платежи</div><div class="sec-action" onclick="openSheet('regular-sheet')">+ Добавить</div></div>
@@ -485,6 +504,11 @@ function renderHistory(){
 
 function renderSettings(){
   document.getElementById('sv-budget').textContent=data.budget>0?fmt(data.budget):'Не задан';
+  const notify=data.notify||{};
+  const te=document.getElementById('toggle-evening');
+  const tp=document.getElementById('toggle-payments');
+  if(te){te.className='toggle'+(notify.evening?' on':'');}
+  if(tp){tp.className='toggle'+(notify.payments?' on':'');}
   const reg=data.regular||[];
   document.getElementById('regular-list').innerHTML=reg.length?reg.map(r=>`<div class="regular-item"><div class="regular-icon">${EMOJI[r.category]||'📦'}</div><div class="regular-info"><div class="regular-title">${r.title}</div><div class="regular-sub">${r.day} числа · ${r.category}</div></div><div class="regular-amount">${fmt(r.amount)}</div><div class="regular-del" onclick="deleteRegular(${r.id})">🗑</div></div>`).join(''):emptyHTML('🔄','Нет регулярных платежей');
   const lims=data.limits||[];
@@ -577,6 +601,18 @@ async function deleteLimit(cat){
 }
 
 function showToast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(err?' error':'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+async function toggleSetting(setting,toggleId){
+  const el=document.getElementById(toggleId);
+  const isOn=el.classList.contains('on');
+  const newVal=!isOn;
+  el.className='toggle'+(newVal?' on':'');
+  try{
+    await fetch(`${API}/api/set_setting`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,setting,value:newVal})});
+    if(data.notify)data.notify[setting.replace('notify_','')]=newVal;
+    showToast(newVal?'✓ Уведомления включены':'✓ Уведомления выключены');
+  }catch(e){el.className='toggle'+(isOn?' on':'');showToast('Ошибка',true);}
+}
 </script>
 
 </body>

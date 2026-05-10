@@ -440,7 +440,7 @@ loadAll();
 function fmt(n){if(n==null)return'—';return Math.round(n).toLocaleString('ru-RU')+' ₽';}
 function fmtShort(n){if(n>=1000000)return(n/1000000).toFixed(1).replace('.0','')+'М ₽';if(n>=1000)return(n/1000).toFixed(1).replace('.0','')+'к ₽';return Math.round(n)+' ₽';}
 function fmtInput(input){let raw=input.value.replace(/\D/g,'');if(!raw){input.value='';return;}input.value=parseInt(raw,10).toLocaleString('ru-RU');}
-function parseInput(val){return parseFloat(val.replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.').replace(/[^\d.]/g,''))||0;}
+function parseInput(val){return parseFloat(val.replace(/[\s\.]/g,'').replace(/,/g,'.'))||0;}
 function getGreeting(){const h=new Date().getHours();if(h<6)return'Доброй ночи 🌙';if(h<12)return'Доброе утро 🌤';if(h<18)return'Добрый день ☀️';return'Добрый вечер 🌆';}
 function fmtDate(str){if(!str)return'';const d=new Date(str),now=new Date();const diff=Math.floor((now-d)/86400000);if(diff===0)return'Сегодня';if(diff===1)return'Вчера';return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});}
 
